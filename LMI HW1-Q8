@@ -1,0 +1,36 @@
+%% MAE598, HW#1, Q8, Mohammad Khajenejad, 1211351359 
+clear; close all; clc;
+%addpath(genpath('Macintosh HD\Users\mkhajene\Downloads\sedumi'));
+rng(103040); N=100; n=5; c=[1 2 3 4 5]'; bn=7.5; R = rand(N,n);R(:,n+1)=-ones(1,N);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+     for i=1:N
+         if R(i,1:n)*c>bn    
+             R(i,n+1)=1;
+         end
+     end
+     w=sdpvar(5,1);
+     b=sdpvar(1,1);
+     obj=.5*w'*w;
+     F=[];
+     for i=1:50
+         F=[F;R(i,6)*(w'*R(i,1:5)'-b)>=1];
+     end
+     optimize(F,obj,solver)
+     ww=value(w);
+     bb=value(b);
+     count=0;
+     for i=51:100
+         if R(i,6)*(ww'*R(i,1:5)'-bb)>=1
+             count=count+1;
+         end
+     end
+     disp('optimal w=')
+     ww
+     disp('optimal b=')
+     bb
+     disp('number of correctly predicted test samples=')
+     count
+         
+     
