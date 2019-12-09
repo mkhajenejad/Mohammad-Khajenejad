@@ -1,0 +1,51 @@
+%% MAE598, Wikibook project, LMIs for Hankel Norm of Affine Parameter Varying Systems
+%% Mohammad Khajenejad, 1211351359 
+%addpath(genpath('Macintosh HD\Users\mkhajene\Downloads\sedumi'));
+%% System matirces and the initail state value should be inputted
+function Hankel_Affine_Par(A,Bw,Cz1,Cz2,Dzw1,Dzw2)
+%np=size(Bp,2);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+%% Controllability Gramian
+C=zeros(size(Cz1,1),size(Cz1,2));
+D=zeros(size(Dzw1,1),size(Dzw1,2));
+sys=ss(A,Bw,C,D);
+W = gram(sys,'c');
+%lambda=sdpvar(1);
+%Lambda=diag(lambda);
+%t=sdpvar(np,1);
+%T=diag(t);
+%gamma=sdpvar(1);
+%% varaibles
+Q=sdpvar(size(A,2),size(A,1));
+gamma=sdpvar(1);
+%lambda=sdpvar(1);
+theta=sdpvar(1);
+%P1=sdpvar(size(A1,2),size(A1,1));
+%P2=sdpvar(size(A2,2),size(A2,1));
+S1=A'*Q+Q*A+(Cz1*theta+Cz2)'*(Cz1*theta+Cz2);%                  P*Bw-(Cz1*theta+Cz2)'...
+S2=gamma*eye(size(W,1))-sqrtm(W)*Q*sqrtm(W);
+   %;(P*Bw-(Cz1*theta+Cz2)')'  2*gamma*eye(size(Bw,2))-(Dzw1*theta+Dzw2)-(Dzw1*theta+Dzw2)'];%         zeros(size(Bw,2),size(Cz1,1))...
+   %;(theta*Cz1+Cz2)'       zeros(size(Cz1,1),size(Bw,2))  -eye(size(Cz1,1))];
+  %;(P*A1)' -P1 zeros(size(P1,1),size(A2,2))...
+  %;(P*A2)' zeros(size(A2,2),size(P1,1)) -P2];
+ % ;(P*Bw)' (Lambda*Cq*Bw)' -(gamma)*eye(size(Bw,2))];
+%% constraints
+const=[Q>=eps*eye(size(A,2));gamma>=0];
+const=[const;S1<=-eps*eye(size(S1,1));S2>=eps*eye(size(S2,2))];
+%const=[const;trace(Bw'*P*Bw)<=lambda];
+ %% objective
+ obj=gamma;
+ %% solution
+ optimize(const,obj,solver);
+ %en=value(obj);
+ %if sol.problem==0
+  %disp('System is stable') 
+ %else
+     disp('Hankel norm of the system=')
+ %end
+ 
+ sqrt(value(obj))
+ 
+end
