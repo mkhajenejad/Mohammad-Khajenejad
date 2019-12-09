@@ -1,0 +1,31 @@
+%% MAE598, Wikibook project, LMIs for L2 gain of Lure's Systems
+%% Mohammad Khajenejad, 1211351359 
+%addpath(genpath('Macintosh HD\Users\mkhajene\Downloads\sedumi'));
+%% System matirces and the initail state value should be inputted
+function Lure_L2_gain(A,Bp,Bw,Cq,Cz,x0)
+np=size(Bp,2);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+%% variables
+lambda=sdpvar(np,1);
+Lambda=diag(lambda);
+t=sdpvar(np,1);
+T=diag(t);
+gamma=sdpvar(1);
+P=sdpvar(size(A,2),size(A,1));
+S=[A'*P+P*A+Cz'*Cz P*Bp+A'*Cq'*Lambda+Cq'*T P*Bw...
+  ;(P*Bp+A'*Cq'*Lambda+Cq'*T)' Lambda*Cq*Bp+(Lambda*Cq*Bp)'-2*T Lambda*Cq*Bw...
+  ;(P*Bw)' (Lambda*Cq*Bw)' -(gamma)*eye(size(Bw,2))];
+%% constraints
+const=[P>=eps*eye(size(A,2));Lambda>=zeros(np,np);T>=zeros(np,np)];
+const=[const;S<=-eps*eye(size(S,1));gamma>=0];
+ %% objective
+ obj=gamma;
+ %% solution
+ optimize(const,obj,solver)
+ %en=value(obj);
+ disp('The L2 Gain of The System=')
+ sqrt(value(obj))
+ 
+end
