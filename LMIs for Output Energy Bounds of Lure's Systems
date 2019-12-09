@@ -1,0 +1,28 @@
+%% MAE598, Wikibook project, LMIs for Output Energy Bounds of Lure's Systems
+%% Mohammad Khajenejad, 1211351359 
+%addpath(genpath('Macintosh HD\Users\mkhajene\Downloads\sedumi'));
+%System description
+function en=Lure_Energy(A,Bp,Bw,Cq,Cz,x0)
+np=size(Bp,2);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+%% variables
+lambda=sdpvar(np,1);
+Lambda=diag(lambda);
+t=sdpvar(np,1);
+T=diag(t);
+P=sdpvar(size(A,2),size(A,1));
+S=[A'*P+P*A P*Bp+A'*Cq'*Lambda+Cq'*T;(P*Bp+A'*Cq'*Lambda+Cq'*T)' Lambda*Cq*Bp+(Lambda*Cq*Bp)'-2*T];
+%% constraints
+const=[P>=eps*eye(size(A,2));Lambda>=zeros(np,np);T>=zeros(np,np)];
+const=[const,S<=-eps*eye(size(A,2)+size(Bp,2))];
+ %% objective
+ obj=x0'*(P+Cq'*Lambda*Cq)*x0;
+ %% solution
+ optimize(const,obj,solver)
+ en=value(obj);
+ disp('The energy bound=')
+ en
+ 
+end
