@@ -1,0 +1,29 @@
+%% Mohammad Khajenejad
+%% LMIs for stability of Lur'e system
+
+function LMI_lure_stability(A,Bp,Bw,Cq,Cz)
+np=size(Bp,2);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+%%variables
+lambda=sdpvar(np,1);
+Lambda=diag(lambda);
+t=sdpvar(np,1);
+T=diag(t);
+P=sdpvar(size(A,2),size(A,1));
+S=[A'*P+P*A P*Bp+A'*Cq'*Lambda+Cq'*T;(P*Bp+A'*Cq'*Lambda+Cq'*T)' Lambda*Cq*Bp+(Lambda*Cq*Bp)'-2*T];
+%%constraints
+const=[P>=eps*eye(size(A,2));Lambda>=zeros(np,np);T>=zeros(np,np)];
+const=[const,S<=-eps*eye(size(A,2)+size(Bp,2))];
+%% objective empty (feasibility problem)
+sol=optimize(const,[],solver);
+if sol.problem==0
+    disp('The Lure System is stable')
+else
+    if np==1
+        disp('The Lure System is unstable')
+    else
+    disp('No judgment can be made on stability of the Lure system')
+    end
+end
