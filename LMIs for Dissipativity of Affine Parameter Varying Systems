@@ -1,0 +1,45 @@
+%% MAE598, Wikibook project, LMIs for Dissipativity of Affine Parameter Varying Systems
+%% Mohammad Khajenejad, 1211351359 
+%addpath(genpath('Macintosh HD\Users\mkhajene\Downloads\sedumi'));
+%% System matirces and the initail state value should be inputted
+function Dissip_Affine_Par(A,Bw,Cz1,Cz2,Dzw1,Dzw2)
+%np=size(Bp,2);
+solver=sdpsettings('solver', 'sedumi', 'sedumi.eps', 1e-8, ...
+                'sedumi.cg.qprec', 1, 'sedumi.cg.maxiter', 49, ...
+                'sedumi.stepdif', 2);
+%% variables
+%lambda=sdpvar(1);
+%Lambda=diag(lambda);
+%t=sdpvar(np,1);
+%T=diag(t);
+%gamma=sdpvar(1);
+P=sdpvar(size(A,2),size(A,1));
+gamma=sdpvar(1);
+%lambda=sdpvar(1);
+theta=sdpvar(1);
+%P1=sdpvar(size(A1,2),size(A1,1));
+%P2=sdpvar(size(A2,2),size(A2,1));
+S= [A'*P+P*A                  P*Bw-(Cz1*theta+Cz2)'...
+   ;(P*Bw-(Cz1*theta+Cz2)')'  2*gamma*eye(size(Bw,2))-(Dzw1*theta+Dzw2)-(Dzw1*theta+Dzw2)'];%         zeros(size(Bw,2),size(Cz1,1))...
+   %;(theta*Cz1+Cz2)'       zeros(size(Cz1,1),size(Bw,2))  -eye(size(Cz1,1))];
+  %;(P*A1)' -P1 zeros(size(P1,1),size(A2,2))...
+  %;(P*A2)' zeros(size(A2,2),size(P1,1)) -P2];
+ % ;(P*Bw)' (Lambda*Cq*Bw)' -(gamma)*eye(size(Bw,2))];
+%% constraints
+const=[P>=eps*eye(size(A,2));gamma>=0];
+const=[const;S<=-eps*eye(size(S,1))];
+%const=[const;trace(Bw'*P*Bw)<=lambda];
+ %% objective
+ obj=gamma;
+ %% solution
+ optimize(const,obj,solver);
+ %en=value(obj);
+ %if sol.problem==0
+  %disp('System is stable') 
+ %else
+     disp('Entropy norm of the system=')
+ %end
+ 
+ value(obj)
+ 
+end
